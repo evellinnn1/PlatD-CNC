@@ -6,7 +6,7 @@
     <meta name="description" content="CNC Web Simulator, an open source CNC simulator for web browser. It can simulate lathe, mill and 3D printers." />
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="stylesheet" type="text/css" href="css/jquery-ui.structure.css">
-    <link rel="stylesheet" type="text/css" href="css/fontIcon.css">
+    <link rel="stylesheet" type="text/css" href="css/fontIcon.css"4>
     <link rel="stylesheet" type="text/css" href="css/ui.css">
     <title>CNC Web Simulator</title>
     <script src="js/libs/lz-string.min.js"></script>
@@ -34,111 +34,1049 @@
     <script src="js/motion.js"></script>
 	<script src="js/controller.js"></script>
 	<script src="js/ui.js"></script>
-	
-	<script type="text/javascript">
-	var controller,ui;
-	// TODO
-	// Lathe tool
-	// Check input forms
-	window.addEventListener("load", (function () 
-	{
-        controller = new CWS.Controller(
-        	new CWS.CodeEditor(),
-        	new CWS.Storage({useCompression:true,useLocalStorage:true}),
-        	new CWS.Renderer("renderer1"),
-        	new CWS.Motion(),
-        	true
-        	);
-		
-		ui = new CWS.UI(controller);
-		var stats = ui.createStats(true);
 
-		function onWindowResize() 
-		{
-			controller.windowResize();
-			ui.resize();
-		}
+<style>
+#exerciseWindow {
+    display: none;
+    position: absolute;
+    width: 650px;
+    height: 460px;
+    background: #1e1b1b;
+    color: #eee;
+    border: 1px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px #132511;
+    padding: 8px;
+    z-index: 9999;
+    overflow: hidden;
+    font-family: inherit;
+}
+#exerciseWindow .cwsx-header {
+    height: 36px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background: linear-gradient(#132511,#375020ff);
+    border-bottom: 1px solid #2b2b2b;
+    font-weight:600;
+}
+#closeExercise {
+    cursor: pointer;
+    background: #4b0d0d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-weight:700;
+}
+#exerciseContent {
+    display:flex;
+    gap:12px;
+    height: calc(100% - 46px);
+    padding: 10px;
+    box-sizing: border-box;
+}
+#exerciseList {
+    width: 28%;
+    background: #132511;
+    border-radius: 8px;
+    padding: 10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    overflow:auto;
+    box-sizing: border-box;
+}
+#exerciseList .exerciseBtn {
+    background: transparent;
+    color: #fff;
+    border: none;
+    text-align:left;
+    padding: 8px 6px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight:600;
+}
+#exerciseList .exerciseBtn:hover {
+    background: #456328ff;
+}
+#exerciseViewer {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    align-items:center;
+    padding:6px;
+    box-sizing:border-box;
+    background: linear-gradient(rgba(88, 60, 60, 0.08),);
+    border-radius:8px;
+    width:100%;
+    height:100%;
+}
+#exerciseTitle {
+    margin: 6px 0 10px 0;
+    color: #f5f5f5;
+}
+#imageWrap {
+    flex:1;
+    width: 100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px;
+    box-sizing:border-box;
+}
+#exerciseImage, #answerImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border: 1px solid #f5f5f5;
+    border-radius:6px;
+    display:none;
+    background: #132511;
+}
+.viewer-buttons {
+    width:100%;
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    padding:8px 0 0 0;
+}
+.viewer-buttons button {
+    padding:8px 14px;
+    border-radius:6px;
+    border: none;
+    cursor:pointer;
+    font-weight:700;
+}
+.btn-coder { background:#456328ff; color:#fff; }
+.btn-close { background:#4b190d; color:#fff; }
 
-		function animate() 
-		{
-			requestAnimationFrame( animate );
-			stats.update();
-			controller.motion.run();
-			controller.render();
-		}
-		animate();
+/* Test container */
+#testContainer {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    background: #0e1b0c;
+    border-radius: 8px;
+    color: #fff;
+}
+#testContainer select, #testContainer textarea {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #1f411b;
+    background: #0e1b0c;
+    color: #fff;
+    padding: 6px;
+    font-family: monospace;
+    font-size: 13px;
+}
+#testContainer textarea {
+    flex: 1;
+    resize: none;
+    height: 250px;
+    font-family: monospace;
+}
+#testButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+#checkButton, #backButton {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+}
+#checkButton { background: #377b2f; color: #fff;}
+#backButton { background: #2b2b2b; color: #fff;}
+#testFeedback {
+    margin-top: 6px;
+    font-family: monospace;
+    font-size: 13px;
+    white-space: pre-line;
+}
+.line-error { color: rgba(255,0,0,0.6); }
+.line-correct { color: #00ff00; }
 
-		window.addEventListener( 'resize', onWindowResize, false );
-		controller.runInterpreter();
-	}),true);
-</script>
+/* ======== ADIÇÕES: menu File + status message + modal ======== */
+/* ======== File Menu (estilo aprimorado) ======== */
+#fileMenu {
+  display: none;
+  position: absolute;
+  top: 36px;
+  left: 10px;
+  width: 160px;
+  background: #1e1b1b;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px #132511;
+  z-index: 9999;
+  overflow: hidden;
+  font-family: inherit;
+  animation: dropdownFade 0.2s ease;
+}
+
+#fileMenu::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 20px;
+  border-width: 0 8px 8px 8px;
+  border-style: solid;
+  border-color: transparent transparent #1e1b1b transparent;
+}
+
+#fileMenu button {
+  display: block;
+  width: 100%;
+  background: transparent;
+  color: #eee;
+  border: none;
+  text-align: left;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+#fileMenu button:hover {
+  background: linear-gradient(#132511, #375020ff);
+  transform: translateX(2px);
+}
+
+#fileMenu button:active {
+  transform: translateY(1px);
+  background: #264422;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal confirm */
+#saveConfirmModal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  background: #272822;
+  color: #fff;
+  border: 1px solid #005c00;
+  border-radius: 8px;
+  padding: 14px 18px;
+  z-index: 10000;
+  text-align: center;
+  min-width: 280px;
+}
+#saveConfirmModal p { margin-bottom: 12px; font-weight:600; }
+#saveConfirmModal .modalButtons { display:flex; gap:10px; justify-content:center; }
+#saveConfirmModal button { padding:8px 12px; border-radius:6px; border:none; font-weight:700; cursor:pointer; }
+#saveConfirmModal .saveBtn { background:#005c00; color:#fff; }
+#saveConfirmModal .dontSaveBtn { background:#555; color:#fff; }
+
+/* ======== About Window ======== */
+#aboutWindow {
+  display: none;
+  position: absolute;
+  width: 650px;
+  height: 460px;
+  background: #1e1b1b;
+  color: #eee;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px #132511;
+  padding: 8px;
+  z-index: 9999;
+  overflow: hidden;
+  font-family: inherit;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+#aboutWindow .cwsx-header {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(#132511, #375020ff);
+  border-bottom: 1px solid #2b2b2b;
+  font-weight: 600;
+  padding: 0 10px;
+}
+#closeAbout {
+  cursor: pointer;
+  background: #4b0d0d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-weight: 700;
+}
+#aboutContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: calc(100% - 46px);
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+#aboutContent ul {
+  margin-left: 18px;
+}
+
+/* Fundo escuro */
+#tutorialModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.75);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Caixa do vídeo */
+/*#tutorialContent {
+    background: #111;
+    padding: 20px;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 0 20px #000;
+}*/
+#tutorialContent {
+    background: #1e1b1b;
+    padding: 20px 24px;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 10px 30px #132511;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* Botão X */
+/* (ajustado dentro da janela) */
+#closeTutorial {
+    position: absolute;
+    top: 8px;              /* move para dentro da caixa - estava 10 px antes */
+    right: 8px;
+    background: #4b0d0d;
+    color: #fff;
+    padding: 4px 10px;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 1;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+#closeTutorial:hover {
+    background: #6a1515;
+    transform: scale(1.1);
+}
+
+
+/* Vídeo responsivo */
+#tutorialVideo {
+    max-width: 90vw;
+    max-height: 80vh;
+    border-radius: 8px;
+}
+
+/* ======== FIM ADIÇÕES ======== */
+
+.dg .close-button { display: none !important; } /*Ocultar Open Control*/
+
+</style>
+
 </head>
 <body>
-	<div id="editor">
-	</div>
-	<div id="topMenu">
-		<nav>
-			<ul>
-				<li><div><span title="File" class="icon icon-folder-open"></span>File</div>
-					<ul>
-						<li><div title="New Project">New</div></li>
-						<li><div title="Open Project">Open</div></li>
-						<li><div title="Delete File" class="notImplemented">Delete</div></li>
-						<li><div title="Edit File" class="notImplemented">Edit</div></li>
-						<li><div title="Import File" class="notImplemented">Import</div></li>
-						<li><div title="Export File" class="notImplemented">Export</div></li>
-						<li><div title="Demo File" class="notImplemented">Demos</div></li>
-					</ul>
-				</li>
-				<li><div><span title="Editor" class="icon icon-pencil notImplemented"></span>Editor</div></li>
-				<li><div><span title="Simulator" class="icon icon-play3 notImplemented"></span>Simulator</div></li>
-				<li><div><span title="Machine" class="icon icon-cogs"></span>Machine</div>
-					<ul>
-						<li><div title="Open Machine">Open Machine</div></li>
-						<li><div title="Machine Settings" class="notImplemented">Machine Settings</div></li>
-						<li><div title="Tool">Tool</div></li>
-					</ul>
-				</li>
-				<li><div><span title="Workpiece" class="icon icon-codepen"></span>Workpiece</div>
-					<ul>
-						<li><div title="Workpiece dimensions">Dimensions</div></li>
-						<li><div title="Workpiece material" class="notImplemented">Material</div></li>
-					</ul>
-				</li>
-				<li><div><span title="Help" class="icon icon-question"></span>Help</div>
-					<ul>
-						<li><div title="Lisence" class="notImplemented">Lisence</div></li>
-						<li><div title="About" class="notImplemented">About</div></li>
-						<li><div title="Documentation" class="notImplemented">Documentation</div></li>
-						<li><div title="Source code" ><a href="https://github.com/filipecaixeta/cncwebsim/">Source code</a></div></li>
-						<li><div title="Author" ><a href="http://filipecaixeta.com.br/">Author</a></div></li>
-					</ul>
-				</li>
-			</ul>
-		</nav>
-        <span id="machineIcon"></span>
-	</div>
-	<div id="canvasContainer">
-	<div id="messages"></div>
-	</div>
-	<div id="bottomMenu">
-		<span title="Run" id="runIcon" class="icon-play3"></span>
-		<span title="Run Animation" id="runAnimationIcon" class="icon-film"></span>
-		<span title="Display wireframe" id="wireframeIcon" class="icon-codepen"></span>
-		<span title="Auto Run" id="autoRunIcon" class="icon-spinner9"></span>
-		<span title="Save" id="saveIcon" class="icon-floppy-disk"></span>
-		<span title="Simulate 2D" id="run2DIcon" >2D</span>
-		<span title="Simulate 3D" id="run3DIcon" >3D</span>
-	</div>
+<div id="editor"></div>
+<div id="topMenu">
+    <!-- Modal do Tutorial -->
+<div id="tutorialModal">
+    <div id="tutorialContent">
+        <span id="closeTutorial">&times;</span>
+
+        <!-- Vídeo MP4 -->
+        <video id="tutorialVideo" width="720" controls>
+            <source src="images/videocnc.mp4" type="video/mp4">
+            Seu navegador não suporta vídeo HTML5.
+        </video>
+
+    </div>
+</div>
+
+<nav>
+    <ul>
+        <li><div id="fileButton"><span title="File" class="icon icon-folder-open"></span>File</div></li>
+        <li><div id="openExercises"><span title="Exercises" class="icon icon-pencil"></span>Exercise</div></li>
+        <li><div><span title="About" class="icon icon-info"></span>About</div></li>
+        <li><div><span title="Tutorial" class="icon icon-play3 notImplemented"></span>Tutorial</div>
+    </ul>
+</nav>
+<!--<span id="machineIcon"></span> comentado--> 
+<span id="machineIcon">
+    <img src="images/iconiff.jpg" style="width: 50px;height:36px;"> 
+</span>
+<!--simbolo do if-->
+
+</div>
+
+<!-- File menu dropdown -->
+<div id="fileMenu">
+    <button id="newFile">New</button>
+    <button id="saveFile">Save</button>
+    <button id="openFile">Open</button>
+    <input type="file" id="fileInputFallback" accept=".nc,.txt,.gcode" style="display:none" />
+</div>
+
+<div id="canvasContainer">
+    <div id="messages"></div>
+</div>
+
+<div id="exerciseWindow">
+    <div class="cwsx-header">
+        <div class="cwsx-title">Exercises</div>
+        <button id="closeExercise">X</button>
+    </div>
+
+    <div id="exerciseContent">
+        <div id="exerciseList">
+            <button class="exerciseBtn" data-ex="1">Exercise 1 (✮☆☆☆)</button>
+            <button class="exerciseBtn" data-ex="2">Exercise 2 (✮☆☆☆)</button>
+            <button class="exerciseBtn" data-ex="3">Exercise 3 (✮✮☆☆)</button>
+            <button class="exerciseBtn" data-ex="4">Exercise 4 (✮✮☆☆)</button>
+            <button class="exerciseBtn" data-ex="5">Exercise 5 (✮✮✮☆)</button>
+            <button class="exerciseBtn" data-ex="6">Exercise 6 (✮✮✮☆)</button>
+            <button class="exerciseBtn" data-ex="7">Exercise 7 (✮✮✮☆)</button>
+            <button class="exerciseBtn" data-ex="8">Exercise 8 (✮✮✮☆)</button>
+            <button class="exerciseBtn" data-ex="9">Exercise 9 (✮✮✮✮)</button>
+            <button class="exerciseBtn" data-ex="10">Exercise 10 (✮✮✮✮)</button>
+        </div>
+
+        <div id="exerciseViewer">
+            <h3 id="exerciseTitle">Select an exercise</h3>
+            <div id="imageWrap">
+                <img id="exerciseImage" src="" alt="Exercise Image">
+                <img id="answerImage" src="" alt="Answer Image">
+            </div>
+
+            <div class="viewer-buttons">
+                <button id="viewCoder" class="btn-coder">Code</button>
+                <button id="viewTest" class="btn-coder">Test</button>
+               <!-- <button id="closeViewer" class="btn-close">Close</button>-->
+            </div>
+
+            <div id="testContainer">
+                <label for="modeSelect">Select the mode used:</label>
+                <select id="modeSelect">
+                    <option value="G90">Absoluto G90</option>
+                    <option value="G91">Incremental G91</option>
+                </select>
+                <textarea id="userGcode" placeholder="Insert the G-code for correction"></textarea>
+                <div id="testButtons">
+                    <button id="backButton">Back</button>
+                    <button id="checkButton">Check</button>
+                </div>
+                <div id="testFeedback"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- status message -->
+<div id="statusMessage"></div>
+
+<!-- save confirm modal -->
+<div id="saveConfirmModal" role="dialog" aria-modal="true">
+  <p>Do you want to save the G-Code?</p>
+  <div class="modalButtons">
+    <button class="saveBtn" id="modalSaveBtn">Save</button>
+    <button class="dontSaveBtn" id="modalDontSaveBtn">Don't save</button>
+  </div>
+</div>
+
+<script>
+var controller, ui;
+window.addEventListener("load", (function () {
+    controller = new CWS.Controller(
+        new CWS.CodeEditor(),
+        new CWS.Storage({useCompression:true,useLocalStorage:true}),
+        new CWS.Renderer("renderer1"),
+        new CWS.Motion(),
+        true
+    );
+
+    ui = new CWS.UI(controller);
+    var stats = ui.createStats(true);
+
+    function onWindowResize() {
+        controller.windowResize();
+        ui.resize();
+    }
+
+    function animate() {
+        requestAnimationFrame( animate );
+        stats.update();
+        controller.motion.run();
+        controller.render();
+    }
+    animate();
+
+    window.addEventListener( 'resize', onWindowResize, false );
+    controller.runInterpreter();
+
+    // helper: show status
+    function showStatus(msg, isError){
+        const s = document.getElementById("statusMessage");
+        if(!s) return;
+        s.style.background = isError ? "#b33" : "#2b2b2b";
+        s.textContent = msg;
+        s.style.display = "block";
+        setTimeout(()=>{ s.style.display = "none"; }, 2200);
+    }
+
+    // File menu toggle
+    const fileBtn = document.getElementById("fileButton");
+    const fileMenu = document.getElementById("fileMenu");
+    fileBtn.addEventListener("click", function(e){
+        e.stopPropagation();
+        fileMenu.style.display = fileMenu.style.display === "block" ? "none" : "block";
+    });
+    document.addEventListener("click", function(e){
+        if(!fileMenu.contains(e.target) && e.target !== fileBtn) fileMenu.style.display = "none";
+    });
+
+    // utility to get/set editor content (ACE compatibility)
+    function getEditorContent(){
+        try{
+            if(controller && controller.editor && controller.editor.editor && typeof controller.editor.editor.getValue === "function") return controller.editor.editor.getValue();
+            if(controller && controller.editor && typeof controller.editor.getValue === "function") return controller.editor.getValue();
+            if(window.editor && typeof window.editor.getValue === "function") return window.editor.getValue();
+        }catch(e){ console.warn(e); }
+        return "";
+    }
+    function setEditorContent(txt){
+        try{
+            if(controller && controller.editor && controller.editor.editor && typeof controller.editor.editor.setValue === "function") { controller.editor.editor.setValue(txt, -1); return true; }
+            if(controller && controller.editor && typeof controller.editor.setValue === "function") { controller.editor.setValue(txt, -1); return true; }
+            if(window.editor && typeof window.editor.setValue === "function") { window.editor.setValue(txt, -1); return true; }
+        }catch(e){ console.warn(e); }
+        return false;
+    }
+
+    // Save with File System Access API if available, else fallback to download
+    async function saveToFile(defaultName){
+        const code = getEditorContent() || "";
+        if(window.showSaveFilePicker){
+            try{
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: defaultName || "programa.nc",
+                    types: [{ description: "G-Code", accept: {"text/plain":[".nc",".gcode",".txt"]} }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(code);
+                await writable.close();
+                showStatus("Arquivo salvo com sucesso!");
+                return true;
+            }catch(err){
+                showStatus("Salvar cancelado ou falha.", true);
+                console.warn(err);
+                return false;
+            }
+        } else {
+            // fallback: trigger download and let user rename in Save As dialog
+            try{
+                const blob = new Blob([code], {type:"text/plain;charset=utf-8"});
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = defaultName || "programa.nc";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showStatus("Download iniciado. Escolha pasta/nome na caixa de diálogo do navegador.");
+                return true;
+            }catch(err){
+                showStatus("Erro ao salvar arquivo.", true);
+                console.warn(err);
+                return false;
+            }
+        }
+    }
+
+    // Open with File System Access API if available, else fallback to input
+    async function openFromFile(){
+        if(window.showOpenFilePicker){
+            try{
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{ description: "G-Code", accept: {"text/plain":[".nc",".gcode",".txt"]} }],
+                    multiple: false
+                });
+                const file = await handle.getFile();
+                const text = await file.text();
+                if(!setEditorContent(text)) showStatus("Editor não encontrado.", true);
+                else showStatus("Arquivo carregado!");
+                return true;
+            }catch(err){
+                showStatus("Abertura cancelada ou falha.", true);
+                console.warn(err);
+                return false;
+            }
+        } else {
+            // fallback to hidden input
+            const input = document.getElementById("fileInputFallback");
+            return new Promise((resolve)=>{
+                input.onchange = function(e){
+                    const f = e.target.files && e.target.files[0];
+                    if(!f){ showStatus("Nenhum arquivo selecionado.", true); resolve(false); return; }
+                    const reader = new FileReader();
+                    reader.onload = function(evt){
+                        const txt = evt.target.result;
+                        if(!setEditorContent(txt)) showStatus("Editor não encontrado.", true);
+                        else showStatus("Arquivo carregado!");
+                        resolve(true);
+                    };
+                    reader.onerror = function(){
+                        showStatus("Erro ao ler arquivo.", true);
+                        resolve(false);
+                    };
+                    reader.readAsText(f);
+                    input.value = "";
+                };
+                input.click();
+            });
+        }
+    }
+
+    // Bind Save/Open/New
+    document.getElementById("saveFile").addEventListener("click", async function(e){
+        e.stopPropagation();
+        fileMenu.style.display = "none";
+        await saveToFile("programa.nc");
+    });
+
+    document.getElementById("openFile").addEventListener("click", async function(e){
+        e.stopPropagation();
+        fileMenu.style.display = "none";
+        await openFromFile();
+    });
+
+    // New: show modal asking to save
+    const modal = document.getElementById("saveConfirmModal");
+    const modalSaveBtn = document.getElementById("modalSaveBtn");
+    const modalDontSaveBtn = document.getElementById("modalDontSaveBtn");
+
+    document.getElementById("newFile").addEventListener("click", function(e){
+        e.stopPropagation();
+        fileMenu.style.display = "none";
+        modal.style.display = "block";
+    });
+
+    modalSaveBtn.addEventListener("click", async function(){
+        modal.style.display = "none";
+        const ok = await saveToFile("programa.nc");
+        // proceed to clear editor even if save cancelled? follow user's instructions: after Save action, then clear.
+        setEditorContent("");
+        showStatus("Editor limpo.");
+    });
+
+    modalDontSaveBtn.addEventListener("click", function(){
+        modal.style.display = "none";
+        setEditorContent("");
+        showStatus("Editor limpo.");
+    });
+
+    // rest of original bindings (exercises etc.) kept intact
+    $("#exerciseWindow").draggable({ handle: ".cwsx-header" }).resizable({
+        minWidth: 320,
+        minHeight: 200,
+        alsoResize: "#exerciseViewer, #imageWrap, #testContainer"
+    });
+
+    $("#openExercises").on("click", function(){
+        $("#exerciseWindow").fadeIn();
+    });
+    $("#closeExercise").on("click", function(){
+        closeExerciseWindow();
+    });
+    $("#exerciseWindow").on("click", "#closeViewer", function(){
+        closeExerciseWindow();
+    });
+
+    function closeExerciseWindow(){
+        $("#exerciseWindow").fadeOut();
+        $("#exerciseTitle").text("Select an exercise");
+        $("#exerciseImage, #answerImage").hide().attr("src","");
+        $("#testContainer").hide();
+        $(".viewer-buttons").show();
+    }
+
+    function setImage($img, path){
+        $img.off("error").attr("src", path);
+    }
+
+    var currentEx = null;
+    var showingAnswer = false;
+
+    $(document).on("click", ".exerciseBtn", function(){
+        currentEx = $(this).data("ex");
+        showingAnswer = false;
+        $("#exerciseTitle").text("Exercise " + currentEx);
+        setImage($("#exerciseImage"), "images/Ativ" + currentEx + ".jpg");
+        $("#exerciseImage").show();
+        $("#answerImage").hide();
+        $("#testContainer").hide();
+        $(".viewer-buttons").show();
+    });
+
+    $("#exerciseWindow").on("click", "#viewCoder", function(){
+        if(!currentEx) return;
+        if(showingAnswer){
+            $("#exerciseTitle").text("Exercise " + currentEx);
+            $("#exerciseImage").show();
+            $("#answerImage").hide();
+            showingAnswer = false;
+        } else {
+            $("#exerciseTitle").text("Answer " + currentEx);
+            setImage($("#answerImage"), "images/Resp" + currentEx + ".jpg");
+            $("#answerImage").show();
+            $("#exerciseImage").hide();
+            showingAnswer = true;
+        }
+    });
+
+const gabaritos = {
+	"1": {"G90": `G1 X60 Z0;\nG1 X60 Z-30;\nG1 X80 Z-30;\nG1 X80 Z-50;\nG1 X100 Z-50;\nG1 X100 Z-120;`,
+        "G91": `G1 X60 Z0;\nG1 X0 Z-30;\nG1 X20 Z0;\nG1 X0 Z-20;\nG1 X20 Z0;\nG1 X0 Z-70;`},
+    "2": {"G90": `G1 X80 Z0;\nG1 X80 Z-30;\nG1 X100 Z-50;\nG1 X100 Z-90;\nG1 X120 Z-100;\nG1 X120 Z-140;\nG1 X140 Z-140;\nG1 X140 Z-190;`,
+        "G91": `G1 X80 Z0;\nG1 X0 Z-30;\nG1 X20 Z-20;\nG1 X0 Z-40;\nG1 X20 Z-10;\nG1 X0 Z-40;\nG1 X20 Z0;\nG1 X0 Z-50;`},
+    "3": {"G90": `G1 X40 Z0;\nG1 X46 Z-3;\nG1 X46 Z-23;\nG1 X76 Z-23;\nG1 X84 Z-27;\nG1 X84 Z-42;\nG1 X124 Z-82;\nG1 X144 Z-82;\nG1 X150 Z-85;\nG1 X150 Z-135;`,
+        "G91": `G1 X40 Z0;\nG1 X6 Z-3;\nG1 X0 Z-20;\nG1 X30 Z0;\nG1 X8 Z-4;\nG1 X0 Z-15;\nG1 X40 Z-40;\nG1 X20 Z0;\nG1 X6 Z-4;\nG1 X0 Z-50;`},
+    "4": {"G90": `G1 X60 Z0;\nG1 X60 Z-30;\nG1 X80 Z-45;\nG1 X100 Z-45;\nG1 X100 Z-65;\nG1 X120 Z-65;\nG1 X132 Z-71;\nG1 X132 Z-121;`,
+        "G91": `G1 X60 Z0;\nG1 X0 Z-30;\nG1 X20 Z-15;\nG1 X20 Z0;\nG1 X0 Z-20;\nG1 X20 Z0;\nG1 X12 Z-6;\nG1 X0 Z-50;`},
+    "5": {"G90": `G1 X20 Z0;\nG3 X30 Z-5 R5;\nG1 X30 Z-15;\nG2 X40 Z-20 R5;\nG1 X60 Z-20;\nG1 X60 Z-30;\nG1 X70 Z-30;\nG1 X76 Z-33;\nG1 X76 Z-63;`,
+        "G91": `G1 X20 Z0;\nG3 X10 Z-5 R5;\nG1 X0 Z-10;\nG2 X10 Z-5 R5;\nG1 X20 Z0;\nG1 X0 Z-10;\nG1 X10 Z0;\nG1 X6 Z-3;\nG1 X0 Z-30;`},
+    "6": {"G90": `G1 X40 Z0;\nG2 X50 Z-5 R5;\nG1 X50 Z-15;\nG3 X60 Z-20 R5;\nG1 X60 Z-35;\nG1 X76 Z-45;\nG1 X76 Z-55;\nG1 X82 Z-55;\nG3 X90 Z-59 R4;\nG1 X90 Z-89;`,
+        "G91": `G1 X40 Z0;\nG2 X10 Z-5 R5;\nG1 X0 Z-10;\nG3 X10 Z-5 R5;\nG1 X0 Z-15;\nG1 X16 Z-10;\nG1 X0 Z-10;\nG1 X6 Z0;\nG3 X8 Z-4 R4;\nG1 X0 Z-30;`},
+    "7": {"G90": `G3 X29.82 Z-7.2 R19;\nG1 X29.82 Z-17.2;\nG1 X43.82 Z-32.2;\nG1 X55.82 Z-32.2;\nG1 X55.82 Z-42.2;\nG2 X63.82 Z-46.2 R4;\nG1 X63.82 Z-66.2;`,
+        "G91": `G3 X29.82 Z-7.2 R19;\nG1 X0 Z-10;\nG1 X14 Z-15;\nG1 X12 Z0;\nG1 X0 Z-10;\nG2 X8 Z-4 R4;\nG1 X0 Z-20;`},
+    "8": {"G90": `G1 X40 Z0;\nG1 X48 Z-4;\nG1 X48 Z-10;\nG2 X48 Z-30 R15.55;\nG1 X48 Z-38;\nG2 X54 Z-41 R3;\nG1 X68 Z-41;\nG1 X68 Z-71;`,
+        "G91": `G1 X40 Z0;\nG1 X8 Z-4;\nG1 X0 Z-6;\nG2 X0 Z-20 R15.55;\nG1 X0 Z-8;\nG2 X6 Z-3 R3;\nG1 X14 Z0;\nG1 X0 Z-30;`},
+    "9": {"G90": `G1 X40 Z0;\nG3 X50 Z-5 R5;\nG1 X50 Z-15;\nG2 X50 Z-41.44 R20;\nG1 X50 Z-53.44;\nG2 X56 Z-56.44 R3;\nG1 X70 Z-56.44;\nG1 X70 Z-116.44;`,
+        "G91": `G1 X40 Z0;\nG3 X10 Z-5 R5;\nG1 X0 Z-10;\nG2 X0 Z-26.44 R20;\nG1 X0 Z-12;\nG2 X6 Z-3 R3;\nG1 X14 Z0;\nG1 X0 Z-60;`},
+    "10": {"G90": `G1 X22 Z0;\nG1 X30 Z-4;\nG1 X30 Z-10;\nG2 X30 Z-25.08 R13;\nG1 X30 Z-32.08;\nG1 X40 Z-32.08;\nG1 X40 Z-44.08;\nG2 X50 Z-49.08 R5;\nG1 X50 Z-79.08;`,
+         "G91": `G1 X22 Z0;\nG1 X8 Z-4;\nG1 X0 Z-6;\nG2 X0 Z-15.08 R13;\nG1 X0 Z-7;\nG1 X10 Z0;\nG1 X0 Z-12;\nG2 X10 Z-5 R5;\nG1 X0 Z-30;`}
+};
+
+    $("#viewTest").on("click", function() {
+        $("#exerciseImage, #answerImage").hide();
+        $(".viewer-buttons").hide();
+        $("#testContainer").show();
+        $("#modeSelect").val("G90");
+        $("#userGcode").val("");
+        $("#testFeedback").html("");
+    });
+
+    $("#backButton").on("click", function() {
+        $("#testContainer").hide();
+        $(".viewer-buttons").show();
+        showingAnswer = false;
+        if(currentEx){
+            $("#exerciseTitle").text("Exercise " + currentEx);
+            setImage($("#exerciseImage"), "images/Ativ" + currentEx + ".jpg");
+            $("#exerciseImage").show();
+            $("#answerImage").hide();
+        }
+    });
+
+    $("#checkButton").on("click", function() {
+        const ex = currentEx;
+        const mode = $("#modeSelect").val();
+        const userCode = $("#userGcode").val().trim();
+        const userLines = userCode.split('\n');
+        const correctLines = gabaritos[ex][mode].split('\n');
+        let feedback = "";
+        let display = "";
+
+        userLines.forEach((line,i)=>{
+            const uline = line.replace(/\s/g,'');
+            const cline = (correctLines[i]||"").replace(/\s/g,'');
+            if(uline !== cline){
+                display += `<div class="line-error">${line} <- Incorrect</div>`;
+                display += `<div class="line-correct">${correctLines[i]} <- Correct this line</div>`;
+            } else {
+                display += `<div>${line}</div>`;
+            }
+        });
+
+        if(userCode.replace(/\s/g,'') === gabaritos[ex][mode].replace(/\s/g,'')){
+            feedback = "✅The code is correct. Well done!";
+            $("#testFeedback").html(feedback);
+        } else {
+            feedback = "❌The code is incorrect.\nIncorrect lines are shown in red and correct ones in green below:";
+            $("#testFeedback").html(feedback + "<br>" + display);
+        }
+    });
+
+})); // end load listener
+</script>
+
+<!-- ===== Verificação Instantânea de Código G — Versão Interface Segura ===== -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  setTimeout(() => {
+    // Tenta localizar o editor (mantendo compatibilidade)
+    let aceEditor = null;
+    if (window.controller?.editor?.editor) aceEditor = window.controller.editor.editor;
+    else if (window.controller?.editor) aceEditor = window.controller.editor;
+    else if (window.editor) aceEditor = window.editor;
+    else if (window.ace?.edit) aceEditor = ace.edit(document.querySelector(".ace_editor"));
+
+    if (!aceEditor) {
+      console.warn("❌ Nenhum editor ACE encontrado. Verificação não ativada.");
+      return;
+    }
+
+    // Cria o painel de feedback dentro do canvasContainer (em baixo do desenho)
+    const canvasContainer = document.getElementById("canvasContainer");
+    const feedbackDiv = document.createElement("div");
+    feedbackDiv.id = "gcode-feedback";
+    feedbackDiv.style.position = "absolute";
+    feedbackDiv.style.bottom = "8px";
+    feedbackDiv.style.left = "50%";
+    feedbackDiv.style.transform = "translateX(-50%)";
+    feedbackDiv.style.background = "rgba(255,255,255,0.9)";
+    feedbackDiv.style.border = "1px solid #d14826";
+    feedbackDiv.style.borderRadius = "6px";
+    feedbackDiv.style.padding = "6px 10px";
+    feedbackDiv.style.fontFamily = "monospace";
+    feedbackDiv.style.color = "#d14826";
+    feedbackDiv.style.fontSize = "13px";
+    feedbackDiv.style.whiteSpace = "pre-line";
+    feedbackDiv.style.display = "none";
+    feedbackDiv.style.zIndex = "99999";
+
+    canvasContainer.appendChild(feedbackDiv);
+
+    // Função de validação
+    function validarGCode(code) {
+  const linhas = code.split("\n");
+  const avisos = [];
+
+  // Comandos permitidos e letras válidas
+  const letrasValidas = ["G", "X", "Y", "Z", "R", "M"];
+
+  for (let i = 0; i < linhas.length; i++) {
+    const linhaOriginal = linhas[i];
+    const linha = linhaOriginal.trim();
+
+    if (!linha) continue;
+
+    // Extrai as partes: G1 X10 Y20, G1X50, etc.
+    const partes = linha.match(/[A-Za-z][0-9\.\-]*/g) || [];
+
+    // Se não tiver G no início → inválido
+    if (!/^G\d+/i.test(linha)) {
+      avisos.push(`⚠️ Linha ${i + 1}: comando inválido → "${linhaOriginal}"`);
+      continue;
+    }
+
+    // Verifica cada parte da linha
+    for (const parte of partes) {
+      const letra = parte[0].toUpperCase();
+
+      // Se tiver letra não permitida → erro
+      if (!letrasValidas.includes(letra)) {
+        avisos.push(`⚠️ Linha ${i + 1}: parâmetro inválido "${letra}"`);
+        break;
+      }
+
+      // Se a letra tiver que ter número e não tiver, erro
+      if (["X", "Y", "Z", "R"].includes(letra)) {
+        const numero = parte.slice(1);
+        if (numero === "" || isNaN(Number(numero))) {
+          avisos.push(`⚠️ Linha ${i + 1}: valor ausente ou inválido em "${parte}"`);
+          break;
+        }
+      }
+    }
+  }
+
+  return avisos;
+}
+
+
+    // Atualiza o painel
+    function atualizarFeedback() {
+      const codigo = aceEditor.getValue ? aceEditor.getValue() : "";
+      const avisos = validarGCode(codigo);
+
+      if (avisos.length > 0) {
+        feedbackDiv.innerHTML = avisos.join("<br>");
+        feedbackDiv.style.display = "block";
+      } else {
+        feedbackDiv.style.display = "none";
+        feedbackDiv.innerHTML = "";
+      }
+    }
+
+    // Observa mudanças no código
+    if (aceEditor.session?.on) aceEditor.session.on("change", atualizarFeedback);
+    else if (aceEditor.on) aceEditor.on("change", atualizarFeedback);
+
+    console.log("✅ Verificação instantânea ativada (versão visual segura)");
+  }, 2000);
+});
+
+// Clicar no botão TUTORIAL
+document.querySelector("li div span[title='Tutorial']").parentElement.addEventListener("click", function () {
+    const modal = document.getElementById("tutorialModal");
+    const video = document.getElementById("tutorialVideo");
+
+    modal.style.display = "flex";
+    video.currentTime = 0;  // reinicia
+    video.play();
+});
+
+// Fechar ao clicar no X
+document.getElementById("closeTutorial").addEventListener("click", function () {
+    const modal = document.getElementById("tutorialModal");
+    const video = document.getElementById("tutorialVideo");
+
+    modal.style.display = "none";
+    video.pause();
+});
+
+// Fechar ao clicar fora
+/*document.getElementById("tutorialModal").addEventListener("click", function (e) {
+    if (e.target === this) {
+        const modal = this;
+        const video = document.getElementById("tutorialVideo");
+
+        modal.style.display = "none";
+        video.pause();
+    }
+});*/
+
+// === About Window ===
+document.addEventListener("DOMContentLoaded", function() {
+  // cria elemento base
+  const aboutHTML = `
+    <div id="aboutWindow">
+      <div class="cwsx-header">
+        <div class="cwsx-title">About</div>
+        <button id="closeAbout">X</button>
+      </div>
+      <div id="aboutContent">
+        <p><strong>Sobre o PlatD-CNC</strong><br>
+        Plataforma Didática para Simulação em CNC</p>
+        
+        <p>O PlatD-CNC é uma plataforma educacional online gratuita desenvolvida especificamente para o ensino e aprendizagem de programação CNC através de simulação gráfica em 2D. Nossa ferramenta foca na simulação de operações de torno utilizando código G, proporcionando uma experiência de aprendizado acessível e didática.</p>
+
+        <p><strong>Objetivo</strong><br>
+        Esta plataforma foi criada para resolver os principais desafios enfrentados no ensino de CNC:</p>
+        <ul>
+          <li>Alto custo de equipamentos para treinamento</li>
+          <li>Simuladores complexos que exigem conhecimento prévio avançado</li>
+          <li>Falta de acesso dos estudantes a ferramentas de prática fora do ambiente acadêmico</li>
+          <li>Necessidade de capacitação tanto para estudantes quanto para profissionais da área</li>
+        </ul>
+
+        <p><strong>Características Principais</strong></p>
+        <ul>
+          <li><strong>Interface Intuitiva</strong></li>
+          <li>Visualização em 2D clara e precisa para desenhos de torno</li>
+          <li>Três áreas integradas: Exercícios propostos, visualização em tempo real e editor de código G</li>
+          <li>Acessibilidade total: Funciona em computadores, tablets e smartphones sem necessidade de instalação</li>
+        </ul>
+
+        <p><strong>Metodologia Didática</strong></p>
+        <ul>
+          <li>Atividades estruturadas: Exercícios organizados por nível de dificuldade</li>
+          <li>Aprendizado progressivo: Do básico ao avançado</li>
+          <li>Verificação instantânea: Respostas disponíveis para conferência</li>
+          <li>Feedback visual: Comparação entre resultado esperado e obtido</li>
+        </ul>
+
+        <p><strong>Sistema de Exercícios</strong><br>
+        A plataforma conta com 10 exercícios cuidadosamente elaborados e organizados em 4 níveis de dificuldade:</p>
+        <ul>
+          <li>⭐ 1 Estrela - Nível Básico</li>
+          <li>Exercícios introdutórios focados exclusivamente em interpolação linear (G01).</li>
+          <li>⭐⭐ 2 Estrelas - Nível Intermediário</li>
+          <li>Introduz chanfros e exige maior habilidade na interpretação de desenhos técnicos.</li>
+          <li>⭐⭐⭐ 3 Estrelas - Nível Avançado</li>
+          <li>Inclui interpolação circular (G02 e G03), permitindo a criação de arcos e formas curvas.</li>
+          <li>⭐⭐⭐⭐ 4 Estrelas - Nível Expert</li>
+          <li>Combina interpolações lineares e circulares com cálculos trigonométricos.</li>
+        </ul>
+
+        <p><strong>Desenvolvimento Acadêmico</strong><br>
+        O PlatD-CNC foi desenvolvido como produto educacional no âmbito do Programa de Pós-Graduação em Ensino da Rede Nordeste de Ensino (RENOEN), linha de pesquisa "Ensino Tecnológico: Práticas e Construções Curriculares".</p>
+
+        <p><strong>Público-Alvo</strong></p>
+        <ul>
+          <li>Estudantes de cursos técnicos e de engenharia</li>
+          <li>Professores de disciplinas relacionadas a CNC</li>
+          <li>Profissionais da indústria</li>
+          <li>Empresas que desejam capacitar funcionários</li>
+        </ul>
+
+        <p><strong>Missão</strong><br>
+        Democratizar o acesso ao conhecimento em programação CNC, proporcionando uma ferramenta educacional gratuita, de qualidade e acessível, que prepare estudantes e profissionais para os desafios da indústria moderna.</p>
+
+        <p style="text-align:center; margin-top:10px;">
+          <em>Desenvolvido no Brasil | IFRN – Campus Mossoró | RENOEN 2023–2027</em>
+        </p>
+      </div>
+    </div>
+  `;
+
+  // adiciona no body
+  document.body.insertAdjacentHTML("beforeend", aboutHTML);
+
+    // Habilita arrastar e redimensionar (jQuery UI precisa estar carregado)
+  $("#aboutWindow").draggable({ handle: ".cwsx-header" }).resizable({
+    minWidth: 320,
+    minHeight: 200,
+    alsoResize: "#aboutContent"
+  });
+
+  // evento do botão About
+  document.querySelector("li div span[title='About']").parentElement.addEventListener("click", function() {
+    $("#aboutWindow").fadeIn();
+  });
+
+  // evento para fechar
+  $(document).on("click", "#closeAbout", function() {
+    $("#aboutWindow").fadeOut();
+  });
+});
+
+
+</script>
 </body>
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-73803745-1', 'auto');
-      ga('send', 'pageview');
-
-    </script>
 </html>
