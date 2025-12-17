@@ -614,8 +614,8 @@ window.addEventListener("load", (function () {
         return false;
     }
 
-    // ===== Salvamento universal (PC + Mobile + Tablet + GitHub Pages) =====
-    function saveToFile(defaultName){
+    // ===== Salvamento universal com nome personalizado =====
+    function saveToFile(defaultName = "gcode.txt"){
         const code = getEditorContent() || "";
 
         if (!code.trim()) {
@@ -623,28 +623,39 @@ window.addEventListener("load", (function () {
             return false;
         }
 
-        // Cria um arquivo de texto real via data URL (padrão web)
+        // Pergunta o nome do arquivo
+        let fileName = prompt("Digite o nome do arquivo:", defaultName);
+
+        if (!fileName) {
+            showStatus("Salvamento cancelado.", true);
+            return false;
+        }
+
+        // Garante extensão .txt
+        if (!fileName.toLowerCase().endsWith(".txt")) {
+            fileName += ".txt";
+        }
+
         const blob = new Blob([code], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
 
-        // Cria link REAL de download (mais confiável que window.open)
         const a = document.createElement("a");
         a.href = url;
-        a.download = defaultName || "gcode.txt";
+        a.download = fileName;
         a.style.display = "none";
 
         document.body.appendChild(a);
         a.click();
 
-        // Limpeza segura
         setTimeout(() => {
             URL.revokeObjectURL(url);
             document.body.removeChild(a);
         }, 100);
 
-        showStatus("Arquivo exportado. Verifique seus downloads.");
+        showStatus(`Arquivo "${fileName}" exportado.`);
         return true;
     }
+
 
 
     // Open with File System Access API if available, else fallback to input
