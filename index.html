@@ -546,7 +546,6 @@
 </div>
 
 <script>
-
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 var controller, ui;
@@ -619,13 +618,14 @@ window.addEventListener("load", (function () {
 
     // Save with File System Access API if available, else fallback to download
     async function saveToFile(defaultName){
-    const code = getEditorContent();
+        const code = getEditorContent();
 
-    if (isMobile) {
-        localStorage.setItem("gcode_backup", code);
-        showStatus("Salvo no dispositivo (mobile).");
-        return true;
-    }
+        if (isMobile) {
+            localStorage.setItem("gcode_backup", code);
+            showStatus("Salvo no dispositivo (mobile).");
+            return true;
+        }
+
         if(window.showSaveFilePicker){
             try{
                 const handle = await window.showSaveFilePicker({
@@ -665,11 +665,11 @@ window.addEventListener("load", (function () {
     // Open with File System Access API if available, else fallback to input
     async function openFromFile(){
         if (isMobile) {
-    const code = localStorage.getItem("gcode_backup") || "";
-    setEditorContent(code);
-    showStatus("Arquivo carregado (mobile).");
-    return true;
-}
+            const code = localStorage.getItem("gcode_backup") || "";
+            setEditorContent(code);
+            showStatus("Arquivo carregado (mobile).");
+            return true;
+        }
 
         if(window.showOpenFilePicker){
             try{
@@ -742,13 +742,14 @@ window.addEventListener("load", (function () {
         const ok = await saveToFile("");
         // proceed to clear editor even if save cancelled? follow user's instructions: after Save action, then clear.
         setEditorContent("");
-        localStorage.removeItem("gcode_backup"); // 👈 AQUI
+        localStorage.removeItem("gcode_backup");
         showStatus("Editor limpo.");
     });
 
     modalDontSaveBtn.addEventListener("click", function(){
         modal.style.display = "none";
         setEditorContent("");
+        localStorage.removeItem("gcode_backup");
         showStatus("Editor limpo.");
     });
 
