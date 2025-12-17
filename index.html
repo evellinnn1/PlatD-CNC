@@ -415,6 +415,27 @@
 
 .dg .close-button { display: none !important; } /*Ocultar Open Control*/
 
+/* ================= SCROLL FIX MOBILE ================= */
+
+/* Permite rolagem por toque */
+#exerciseList,
+#exerciseViewer,
+#testContainer,
+#aboutContent,
+#testFeedback {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Corrige scroll no container principal no celular */
+@media (max-width: 600px) {
+    #exerciseContent {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+
 </style>
 
 </head>
@@ -436,9 +457,9 @@
 
 <nav>
     <ul>
-        <li><div id="fileButton"><span title="File" class="icon icon-folder-open"></span>Arquivo</div></li>
-        <li><div id="openExercises"><span title="Exercises" class="icon icon-pencil"></span>Exercícios</div></li>
-        <li><div><span title="About" class="icon icon-info"></span>Sobre</div></li>
+        <li><div id="fileButton"><span title="Arquivo" class="icon icon-folder-open"></span>Arquivo</div></li>
+        <li><div id="openExercises"><span title="Exercícios" class="icon icon-pencil"></span>Exercícios</div></li>
+        <li><div><span title="Sobre" class="icon icon-info"></span>Sobre</div></li>
         <li><div><span title="Tutorial" class="icon icon-play3 notImplemented"></span>Tutorial</div>
     </ul>
 </nav>
@@ -1075,7 +1096,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // evento do botão About
-  document.querySelector("li div span[title='About']").parentElement.addEventListener("click", function() {
+  document.querySelector("li div span[title='Sobre']").parentElement.addEventListener("click", function() {
     $("#aboutWindow").fadeIn();
   });
 
