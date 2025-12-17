@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href="css/jquery-ui.structure.css">
     <link rel="stylesheet" type="text/css" href="css/fontIcon.css"4>
     <link rel="stylesheet" type="text/css" href="css/ui.css">
-    <title>CNC Web Simulator</title>
+    <title>PlatD-CNC</title>
     <script src="js/libs/lz-string.min.js"></script>
     <script src="js/libs/ace/ace.js"></script>
     <script src="js/libs/jquery-1.12.0.min.js"></script>
@@ -75,6 +75,7 @@
     height: calc(100% - 46px);
     padding: 10px;
     box-sizing: border-box;
+    overflow-y: auto;
 }
 #exerciseList {
     width: 28%;
@@ -149,7 +150,7 @@
     cursor:pointer;
     font-weight:700;
 }
-.btn-coder { background:#456328ff; color:#fff; }
+.btn-coder { background:#377b2f; color:#fff; }
 .btn-close { background:#4b190d; color:#fff; }
 
 /* Test container */
@@ -200,8 +201,15 @@
     font-family: monospace;
     font-size: 13px;
     white-space: pre-line;
+
+    /* --- ADIÇÕES PARA A CAIXA VERDE --- */
+    background: #0e1b0c;    /* fundo verde */
+    padding: 10px;
+    border-radius: 8px;
+    overflow-y: auto;        /* permite rolar dentro da caixa */
 }
-.line-error { color: rgba(255,0,0,0.6); }
+
+.line-error { color: rgb(255, 36, 36); }
 .line-correct { color: #00ff00; }
 
 /* ======== ADIÇÕES: menu File + status message + modal ======== */
@@ -303,9 +311,6 @@
   z-index: 9999;
   overflow: hidden;
   font-family: inherit;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 #aboutWindow .cwsx-header {
   height: 36px;
@@ -349,8 +354,7 @@
     height: 100%;
     background: rgba(0,0,0,0.75);
     z-index: 99999;
-    justify-content: center;
-    align-items: center;
+
 }
 
 /* Caixa do vídeo */
@@ -365,7 +369,9 @@
     background: #1e1b1b;
     padding: 20px 24px;
     border-radius: 10px;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     box-shadow: 0 10px 30px #132511;
     display: flex;
     flex-direction: column;
@@ -409,6 +415,27 @@
 
 .dg .close-button { display: none !important; } /*Ocultar Open Control*/
 
+/* ================= SCROLL FIX MOBILE ================= */
+
+/* Permite rolagem por toque */
+#exerciseList,
+#exerciseViewer,
+#testContainer,
+#aboutContent,
+#testFeedback {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Corrige scroll no container principal no celular */
+@media (max-width: 600px) {
+    #exerciseContent {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+
 </style>
 
 </head>
@@ -423,7 +450,6 @@
         <!-- Vídeo MP4 -->
         <video id="tutorialVideo" width="720" controls>
             <source src="images/videocnc.mp4" type="video/mp4">
-            Seu navegador não suporta vídeo HTML5.
         </video>
 
     </div>
@@ -431,9 +457,9 @@
 
 <nav>
     <ul>
-        <li><div id="fileButton"><span title="File" class="icon icon-folder-open"></span>File</div></li>
-        <li><div id="openExercises"><span title="Exercises" class="icon icon-pencil"></span>Exercise</div></li>
-        <li><div><span title="About" class="icon icon-info"></span>About</div></li>
+        <li><div id="fileButton"><span title="Arquivo" class="icon icon-folder-open"></span>Arquivo</div></li>
+        <li><div id="openExercises"><span title="Exercícios" class="icon icon-pencil"></span>Exercícios</div></li>
+        <li><div><span title="Sobre" class="icon icon-info"></span>Sobre</div></li>
         <li><div><span title="Tutorial" class="icon icon-play3 notImplemented"></span>Tutorial</div>
     </ul>
 </nav>
@@ -447,10 +473,10 @@
 
 <!-- File menu dropdown -->
 <div id="fileMenu">
-    <button id="newFile">New</button>
-    <button id="saveFile">Save</button>
-    <button id="openFile">Open</button>
-    <input type="file" id="fileInputFallback" accept=".nc,.txt,.gcode" style="display:none" />
+    <button id="newFile">Novo</button>
+    <button id="saveFile">Salvar</button>
+    <button id="openFile">Abrir</button>
+    <input type="file" id="fileInputFallback" accept=".txt" style="display:none" />
 </div>
 
 <div id="canvasContainer">
@@ -459,47 +485,47 @@
 
 <div id="exerciseWindow">
     <div class="cwsx-header">
-        <div class="cwsx-title">Exercises</div>
+        <div class="cwsx-title">Exercícios</div>
         <button id="closeExercise">X</button>
     </div>
 
     <div id="exerciseContent">
         <div id="exerciseList">
-            <button class="exerciseBtn" data-ex="1">Exercise 1 (✮☆☆☆)</button>
-            <button class="exerciseBtn" data-ex="2">Exercise 2 (✮☆☆☆)</button>
-            <button class="exerciseBtn" data-ex="3">Exercise 3 (✮✮☆☆)</button>
-            <button class="exerciseBtn" data-ex="4">Exercise 4 (✮✮☆☆)</button>
-            <button class="exerciseBtn" data-ex="5">Exercise 5 (✮✮✮☆)</button>
-            <button class="exerciseBtn" data-ex="6">Exercise 6 (✮✮✮☆)</button>
-            <button class="exerciseBtn" data-ex="7">Exercise 7 (✮✮✮☆)</button>
-            <button class="exerciseBtn" data-ex="8">Exercise 8 (✮✮✮☆)</button>
-            <button class="exerciseBtn" data-ex="9">Exercise 9 (✮✮✮✮)</button>
-            <button class="exerciseBtn" data-ex="10">Exercise 10 (✮✮✮✮)</button>
+            <button class="exerciseBtn" data-ex="1">Exercício 1 (✮☆☆☆)</button>
+            <button class="exerciseBtn" data-ex="2">Exercício 2 (✮☆☆☆)</button>
+            <button class="exerciseBtn" data-ex="3">Exercício 3 (✮✮☆☆)</button>
+            <button class="exerciseBtn" data-ex="4">Exercício 4 (✮✮☆☆)</button>
+            <button class="exerciseBtn" data-ex="5">Exercício 5 (✮✮✮☆)</button>
+            <button class="exerciseBtn" data-ex="6">Exercício 6 (✮✮✮☆)</button>
+            <button class="exerciseBtn" data-ex="7">Exercício 7 (✮✮✮☆)</button>
+            <button class="exerciseBtn" data-ex="8">Exercício 8 (✮✮✮☆)</button>
+            <button class="exerciseBtn" data-ex="9">Exercício 9 (✮✮✮✮)</button>
+            <button class="exerciseBtn" data-ex="10">Exercício 10 (✮✮✮✮)</button>
         </div>
 
         <div id="exerciseViewer">
-            <h3 id="exerciseTitle">Select an exercise</h3>
+            <h3 id="exerciseTitle">Selecione um exercício</h3>
             <div id="imageWrap">
                 <img id="exerciseImage" src="" alt="Exercise Image">
                 <img id="answerImage" src="" alt="Answer Image">
             </div>
 
             <div class="viewer-buttons">
-                <button id="viewCoder" class="btn-coder">Code</button>
-                <button id="viewTest" class="btn-coder">Test</button>
+                <button id="viewCoder" class="btn-coder">Código</button>
+                <button id="viewTest" class="btn-coder">Testar</button>
                <!-- <button id="closeViewer" class="btn-close">Close</button>-->
             </div>
 
             <div id="testContainer">
-                <label for="modeSelect">Select the mode used:</label>
+                <label for="modeSelect">Selecione o modo utilizado:</label>
                 <select id="modeSelect">
                     <option value="G90">Absoluto G90</option>
                     <option value="G91">Incremental G91</option>
                 </select>
-                <textarea id="userGcode" placeholder="Insert the G-code for correction"></textarea>
+                <textarea id="userGcode" placeholder="Insira o G-Code para a correção"></textarea>
                 <div id="testButtons">
-                    <button id="backButton">Back</button>
-                    <button id="checkButton">Check</button>
+                    <button id="backButton">Voltar</button>
+                    <button id="checkButton">Testar</button>
                 </div>
                 <div id="testFeedback"></div>
             </div>
@@ -512,10 +538,10 @@
 
 <!-- save confirm modal -->
 <div id="saveConfirmModal" role="dialog" aria-modal="true">
-  <p>Do you want to save the G-Code?</p>
+  <p>Você gostaria de salvar o G-Code?</p>
   <div class="modalButtons">
-    <button class="saveBtn" id="modalSaveBtn">Save</button>
-    <button class="dontSaveBtn" id="modalDontSaveBtn">Don't save</button>
+    <button class="saveBtn" id="modalSaveBtn">Salvar</button>
+    <button class="dontSaveBtn" id="modalDontSaveBtn">Não Salvar</button>
   </div>
 </div>
 
@@ -588,51 +614,33 @@ window.addEventListener("load", (function () {
         return false;
     }
 
-    // Save with File System Access API if available, else fallback to download
-    async function saveToFile(defaultName){
+    // ===== Salvamento 100% compatível (PC + Mobile + GitHub Pages) =====
+    function saveToFile(defaultName) {
         const code = getEditorContent() || "";
-        if(window.showSaveFilePicker){
-            try{
-                const handle = await window.showSaveFilePicker({
-                    suggestedName: defaultName || ".txt",
-                    types: [{ description: "G-Code", accept: {"text/plain":[".txt"]} }]
-                });
-                const writable = await handle.createWritable();
-                await writable.write(code);
-                await writable.close();
-                showStatus("Arquivo salvo com sucesso!");
-                return true;
-            }catch(err){
-                showStatus("Salvar cancelado ou falha.", true);
-                console.warn(err);
-                return false;
-            }
-        } else {
-            // fallback: trigger download and let user rename in Save As dialog
-            try{
-                const blob = new Blob([code], {type:"text/plain;charset=utf-8"});
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = defaultName || "programa.nc";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                showStatus("Download iniciado. Escolha pasta/nome na caixa de diálogo do navegador.");
-                return true;
-            }catch(err){
-                showStatus("Erro ao salvar arquivo.", true);
-                console.warn(err);
-                return false;
-            }
+
+        if (!code) {
+            showStatus("Nada para salvar.", true);
+            return false;
         }
+
+        // Abre o conteúdo como documento de texto real
+        const text = encodeURIComponent(code);
+        const url = "data:text/plain;charset=utf-8," + text;
+
+        // Abre em nova aba (mobile-safe)
+        window.open(url, "_blank");
+
+        showStatus("Arquivo aberto. Use 'Salvar como' no navegador.");
+        return true;
     }
+
 
     // Open with File System Access API if available, else fallback to input
     async function openFromFile(){
         if(window.showOpenFilePicker){
             try{
                 const [handle] = await window.showOpenFilePicker({
-                    types: [{ description: "G-Code", accept: {"text/plain":[".nc",".gcode",".txt"]} }],
+                    types: [{ description: "", accept: {"text/plain":[".txt"]} }],
                     multiple: false
                 });
                 const file = await handle.getFile();
@@ -675,7 +683,7 @@ window.addEventListener("load", (function () {
     document.getElementById("saveFile").addEventListener("click", async function(e){
         e.stopPropagation();
         fileMenu.style.display = "none";
-        await saveToFile("programa.nc");
+        await saveToFile("");
     });
 
     document.getElementById("openFile").addEventListener("click", async function(e){
@@ -697,7 +705,7 @@ window.addEventListener("load", (function () {
 
     modalSaveBtn.addEventListener("click", async function(){
         modal.style.display = "none";
-        const ok = await saveToFile("programa.nc");
+        const ok = await saveToFile("");
         // proceed to clear editor even if save cancelled? follow user's instructions: after Save action, then clear.
         setEditorContent("");
         showStatus("Editor limpo.");
@@ -708,6 +716,7 @@ window.addEventListener("load", (function () {
         setEditorContent("");
         showStatus("Editor limpo.");
     });
+
 
     // rest of original bindings (exercises etc.) kept intact
     $("#exerciseWindow").draggable({ handle: ".cwsx-header" }).resizable({
@@ -728,7 +737,7 @@ window.addEventListener("load", (function () {
 
     function closeExerciseWindow(){
         $("#exerciseWindow").fadeOut();
-        $("#exerciseTitle").text("Select an exercise");
+        $("#exerciseTitle").text("Selecione um exercício");
         $("#exerciseImage, #answerImage").hide().attr("src","");
         $("#testContainer").hide();
         $(".viewer-buttons").show();
@@ -825,18 +834,18 @@ const gabaritos = {
             const uline = line.replace(/\s/g,'');
             const cline = (correctLines[i]||"").replace(/\s/g,'');
             if(uline !== cline){
-                display += `<div class="line-error">${line} <- Incorrect</div>`;
-                display += `<div class="line-correct">${correctLines[i]} <- Correct this line</div>`;
+                display += `<div class="line-error">${line} <- Incorreto</div>`;
+                display += `<div class="line-correct">${correctLines[i]} <- Corrija esta linha</div>`;
             } else {
                 display += `<div>${line}</div>`;
             }
         });
 
         if(userCode.replace(/\s/g,'') === gabaritos[ex][mode].replace(/\s/g,'')){
-            feedback = "✅The code is correct. Well done!";
+            feedback = "✅O código está correto. Muito bem!";
             $("#testFeedback").html(feedback);
         } else {
-            feedback = "❌The code is incorrect.\nIncorrect lines are shown in red and correct ones in green below:";
+            feedback = "❌O código está incorreto.\nLinhas incorretas estão em vermelho e corretas em verde.";
             $("#testFeedback").html(feedback + "<br>" + display);
         }
     });
@@ -987,7 +996,7 @@ document.addEventListener("DOMContentLoaded", function() {
   const aboutHTML = `
     <div id="aboutWindow">
       <div class="cwsx-header">
-        <div class="cwsx-title">About</div>
+        <div class="cwsx-title">Sobre</div>
         <button id="closeAbout">X</button>
       </div>
       <div id="aboutContent">
@@ -1048,6 +1057,9 @@ document.addEventListener("DOMContentLoaded", function() {
         <p><strong>Missão</strong><br>
         Democratizar o acesso ao conhecimento em programação CNC, proporcionando uma ferramenta educacional gratuita, de qualidade e acessível, que prepare estudantes e profissionais para os desafios da indústria moderna.</p>
 
+        <p><strong>Contato</strong><br>
+        E-mail: isac.barbosa@ifrn.edu.br</p>
+
         <p style="text-align:center; margin-top:10px;">
           <em>Desenvolvido no Brasil | IFRN – Campus Mossoró | RENOEN 2023–2027</em>
         </p>
@@ -1066,7 +1078,7 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // evento do botão About
-  document.querySelector("li div span[title='About']").parentElement.addEventListener("click", function() {
+  document.querySelector("li div span[title='Sobre']").parentElement.addEventListener("click", function() {
     $("#aboutWindow").fadeIn();
   });
 
