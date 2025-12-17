@@ -623,12 +623,11 @@ window.addEventListener("load", (function () {
             return false;
         }
 
-        // Abre o conteúdo como documento de texto real
         const text = encodeURIComponent(code);
         const url = "data:text/plain;charset=utf-8," + text;
 
-        // Abre em nova aba (mobile-safe)
-        window.open(url, "_blank");
+        // Redireciona a aba atual (mais confiável que window.open)
+        window.location.href = url;
 
         showStatus("Arquivo aberto. Use 'Salvar como' no navegador.");
         return true;
