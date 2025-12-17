@@ -547,7 +547,6 @@
 
 <script>
 var controller, ui;
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 window.addEventListener("load", (function () {
     controller = new CWS.Controller(
         new CWS.CodeEditor(),
@@ -615,44 +614,49 @@ window.addEventListener("load", (function () {
         return false;
     }
 
-    // Save with File System Access API if available, else fallback to download
-    async function saveToFile(defaultName){
+    // ===== Salvamento universal com nome personalizado =====
+    function saveToFile(defaultName = "gcode.txt"){
         const code = getEditorContent() || "";
-        if(window.showSaveFilePicker){
-            try{
-                const handle = await window.showSaveFilePicker({
-                    suggestedName: defaultName || "",
-                    types: [{ description: "", accept: {"text/plain":[".txt"]} }]
-                });
-                const writable = await handle.createWritable();
-                await writable.write(code);
-                await writable.close();
-                showStatus("Arquivo salvo com sucesso!");
-                return true;
-            }catch(err){
-                showStatus("Salvar cancelado ou falha.", true);
-                console.warn(err);
-                return false;
-            }
-        } else {
-            // fallback: trigger download and let user rename in Save As dialog
-            try{
-                const blob = new Blob([code], {type:"text/plain;charset=utf-8"});
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = defaultName || "";
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                showStatus("Download iniciado. Escolha pasta/nome na caixa de diálogo do navegador.");
-                return true;
-            }catch(err){
-                showStatus("Erro ao salvar arquivo.", true);
-                console.warn(err);
-                return false;
-            }
+
+        if (!code.trim()) {
+            showStatus("Nada para salvar.", true);
+            return false;
         }
+
+        // Pergunta o nome do arquivo
+        let fileName = prompt("Digite o nome do arquivo:", defaultName);
+
+        if (!fileName) {
+            showStatus("Salvamento cancelado.", true);
+            return false;
+        }
+
+        // Garante extensão .txt
+        if (!fileName.toLowerCase().endsWith(".txt")) {
+            fileName += ".txt";
+        }
+
+        const blob = new Blob([code], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.style.display = "none";
+
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+            URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }, 100);
+
+        showStatus(`Arquivo "${fileName}" exportado.`);
+        return true;
     }
+
+
 
     // Open with File System Access API if available, else fallback to input
     async function openFromFile(){
@@ -699,37 +703,16 @@ window.addEventListener("load", (function () {
     }
 
     // Bind Save/Open/New
-    document.getElementById("saveFile").addEventListener("click", function(e){
+    document.getElementById("saveFile").addEventListener("click", async function(e){
         e.stopPropagation();
         fileMenu.style.display = "none";
-
-        const code = getEditorContent();
-
-        // === MOBILE SAVE FIX ===
-        if (isMobile) {
-            localStorage.setItem("gcode_backup", code);
-            showStatus("Salvo no dispositivo (mobile).");
-            return;
-        }
-
-        // === DESKTOP ===
-        saveToFile("");
+        await saveToFile("");
     });
 
-    document.getElementById("openFile").addEventListener("click", function(e){
+    document.getElementById("openFile").addEventListener("click", async function(e){
         e.stopPropagation();
         fileMenu.style.display = "none";
-
-        // === MOBILE OPEN FIX ===
-        if (isMobile) {
-            const code = localStorage.getItem("gcode_backup") || "";
-            setEditorContent(code);
-            showStatus("Arquivo carregado (mobile).");
-            return;
-        }
-
-        // === DESKTOP ===
-        openFromFile();
+        await openFromFile();
     });
 
     // New: show modal asking to save
@@ -748,14 +731,12 @@ window.addEventListener("load", (function () {
         const ok = await saveToFile("");
         // proceed to clear editor even if save cancelled? follow user's instructions: after Save action, then clear.
         setEditorContent("");
-        localStorage.removeItem("gcode_backup");
         showStatus("Editor limpo.");
     });
 
     modalDontSaveBtn.addEventListener("click", function(){
         modal.style.display = "none";
         setEditorContent("");
-        localStorage.removeItem("gcode_backup");
         showStatus("Editor limpo.");
     });
 
